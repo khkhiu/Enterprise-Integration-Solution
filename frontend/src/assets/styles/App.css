@@ -47,12 +47,13 @@
 .container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* Align content at the top */
   align-items: center;
-  height: 100vh;
+  height: 100%; /* Allow the container to take full height of the viewport */
   text-align: center;
   padding: 20px;
-
+  overflow-y: auto; /* Allow vertical scrolling */
+  box-sizing: border-box;
 }
 
 /* Form styling */
@@ -114,4 +115,30 @@
   padding: 10px;
   border-radius: 5px;
   align-items: center;
+}
+
+/* Scroll to Top Button */
+.scrollToTopButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #848484; /* Light grey color */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 15px;
+  font-size: 24px; /* Larger font size for the arrow */
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scrollToTopButton:hover {
+  background-color: #5a5a5a; /* Darker grey on hover */
+}
+
+.scrollToTopButton:focus {
+  outline: none;
 }

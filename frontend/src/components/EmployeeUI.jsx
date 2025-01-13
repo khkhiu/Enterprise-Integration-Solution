@@ -20,6 +20,12 @@ function EmployeeUI({
   deleteEmployee,
   handleSubmit,
 }) {
+
+  // Function to scroll to the top of the page
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };  
+
   return (
     <div className="container">
       <h1>Employee Manager</h1>
@@ -130,6 +136,8 @@ function EmployeeUI({
           ))}
         </div>
       )}
+          {/* Scroll to Top Button */}
+          <button onClick={scrollToTop} className="scrollToTopButton">↑</button>
     </div>
   );
 }

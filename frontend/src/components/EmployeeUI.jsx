@@ -1,4 +1,5 @@
 import React from 'react';
+import '../assets/styles/App.css'; // Import the CSS file
 
 function EmployeeUI({
   name,
@@ -20,20 +21,21 @@ function EmployeeUI({
   handleSubmit,
 }) {
   return (
-    <div>
+    <div className="container">
       <h1>Employee Manager</h1>
 
       {/* Display success/error messages */}
       {message && <p>{message}</p>}
 
       {/* Form for adding a new employee */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="form">
         <input
           type="text"
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          className="input"
         />
         <input
           type="email"
@@ -41,52 +43,43 @@ function EmployeeUI({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="input"
         />
-        <button type="submit">Add Employee</button>
+        <button type="submit" className="button">Add Employee</button>
       </form>
 
       {/* Search bar with search and clear buttons */}
-      <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+      <div className="searchContainer">
         <input
           type="text"
           placeholder="Search by name or email"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ padding: '10px', width: '60%' }}
+          className="input"
         />
-        <button
-          onClick={searchEmployees}
-          style={{ padding: '10px', marginLeft: '10px' }}
-        >
-          Search Employee
-        </button>
+        <button onClick={searchEmployees} className="button">Search Employee</button>
         <button
           onClick={clearSearch}
-          style={{
-            padding: '10px',
-            marginLeft: '10px',
-            backgroundColor: '#f44336',
-            color: '#fff',
-          }}
+          className="button clearButton"
         >
           Clear Search
         </button>
       </div>
 
       {/* Button to toggle show/hide employees */}
-      <button onClick={toggleEmployees} style={{ marginTop: '20px' }}>
+      <button onClick={toggleEmployees} className="button">
         {showEmployees ? 'Hide All Employees' : 'Show All Employees'}
       </button>
 
       {/* Display all employees */}
       {showEmployees && (
-        <div>
+        <div className="employeeList">
           <h2>Employee List</h2>
           {employees.length > 0 ? (
             employees.map((employee) => (
               <div
                 key={employee.id}
-                style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}
+                className="employeeCard"
               >
                 <p>ID: {employee.id}</p>
                 <p>Name: {employee.name}</p>
@@ -112,12 +105,12 @@ function EmployeeUI({
 
       {/* Display search results */}
       {searchResults.length > 0 && (
-        <div>
+        <div className="employeeList">
           <h2>Search Results</h2>
           {searchResults.map((employee) => (
             <div
               key={employee.id}
-              style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}
+              className="employeeCard"
             >
               <p>ID: {employee.id}</p>
               <p>Name: {employee.name}</p>

@@ -40,3 +40,78 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Styling for EmployeeUI.JSX */
+
+/* Container for centering content */
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+
+}
+
+/* Form styling */
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60%;
+  margin-bottom: 20px;
+}
+
+/* Input styling */
+.input {
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  align-items: center;
+}
+
+/* Button styling */
+.button {
+  padding: 10px;
+  width: 100%;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+/* Styling for clear button */
+.clearButton {
+  background-color: #f44336;
+  align-items: center;
+}
+
+/* Search container styling */
+.searchContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60%;
+  margin-bottom: 20px;
+}
+
+/* Employee list container */
+.employeeList {
+  width: 60%;
+  margin-top: 20px;
+  align-items: center;
+}
+
+/* Employee card styling */
+.employeeCard {
+  border: 1px solid #ccc;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  align-items: center;
+}

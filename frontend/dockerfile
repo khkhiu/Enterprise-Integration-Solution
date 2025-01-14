@@ -1,10 +1,10 @@
-# Use a Node.js image to build the React app
-FROM node:18-alpine AS build
+# Use a Node.js image with Vite for development
+FROM node:18 AS dev
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json files
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
@@ -13,17 +13,8 @@ RUN npm install
 # Copy the rest of the React app source code
 COPY . .
 
-# Build the React app
-RUN npm run build
+# Expose the Vite development port
+EXPOSE 5173
 
-# Use a lightweight web server to serve the static files
-FROM nginx:1.23-alpine
-
-# Copy the built React app from the previous stage
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Expose the port the app runs on
-EXPOSE 80
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the Vite development server
+CMD ["npm", "run", "dev", "--", "--host"]

@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import EmployeeUI from './EmployeeUI';
 
-const API_URL = "http://localhost:8080/employees";
+// Get API URL from environment variable or use fallback
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/employees";
 
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
+
 function EmployeeManager() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

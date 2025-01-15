@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import EmployeeUI from './EmployeeUI'; // Import the EmployeeUI component
 
-const API_URL = "http://localhost:8080/employees"; // Backend API URL
+// Use environment variable or fallback to localhost
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/employees";
 
 function EmployeeManager() {
   const [name, setName] = useState('');

@@ -13,25 +13,25 @@ public class OnboardingRoute extends RouteBuilder {
             .log("Error occurred: ${exception.message}")
             .to("direct:failure-handler");
 
-        from("kafka:new-employees?brokers=localhost:9092") // Listens for new employees
+        // Updated Kafka endpoint with correct broker address
+        from("kafka:new-employees?brokers=kafka:9092&groupId=demo-consumer-group")
             .log("New employee added: ${body}")
-            .to("direct:account-creation"); // Moves to account creation
+            .to("direct:account-creation");
 
         from("direct:account-creation")
             .log("Creating account for: ${body}")
-            .process(new FailureSimulator("Account creation")) // Simulates failure
-            .to("direct:onboarding-tasks"); // Moves to onboarding tasks
+            .process(new FailureSimulator("Account creation"))
+            .to("direct:onboarding-tasks");
 
         from("direct:onboarding-tasks")
             .log("Issuing laptop, staff pass, and goody bag for: ${body}")
-            .process(new FailureSimulator("Onboarding tasks")) // Simulates failure
-            .to("log:done"); // Logs completion
+            .process(new FailureSimulator("Onboarding tasks"))
+            .to("log:done");
 
         from("direct:failure-handler")
             .log("Failure handled: ${body}");
     }
 
-    // A processor to simulate failures for demonstration purposes
     private static class FailureSimulator implements Processor {
         private final String taskName;
 

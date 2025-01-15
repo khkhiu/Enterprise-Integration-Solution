@@ -12,12 +12,23 @@ services:
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    # name change needed
+      SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:9092
+      # 'SPRING_KAFKA_CONSUMER_GROUP_ID' must match 'spring.kafka.consumer.group-id=' in application.properties
       SPRING_KAFKA_CONSUMER_GROUP_ID: demo-consumer-group
       SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: earliest
+      SPRING_KAFKA_CONSUMER_KEY_DESERIALIZER: org.apache.kafka.common.serialization.StringDeserializer
+      SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER: org.apache.kafka.common.serialization.StringDeserializer
+      SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_PRODUCER_KEY_SERIALIZER: org.apache.kafka.common.serialization.StringSerializer
+      SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER: org.apache.kafka.common.serialization.StringSerializer    
     depends_on:
-      - db
-      - kafka
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -25,6 +36,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5173:5173"  # Expose Vite development server
+    networks:
+      - app-network
 
   db:
     image: mysql:8
@@ -37,6 +50,13 @@ services:
       - "3306:3306"  # Map data to localhost
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -45,6 +65,8 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
+    networks:
+      - app-network
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -54,7 +76,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      # Not sure if the below are needed
+      # Attempting to resolve an issue with message sizes
       KAFKA_MESSAGE_MAX_BYTES: 10485760
       KAFKA_REPLICA_FETCH_MAX_BYTES: 10485760
       KAFKA_SOCKET_REQUEST_MAX_BYTES: 10485760
@@ -62,6 +84,12 @@ services:
       - "9092:9092"
     depends_on:
       - zookeeper
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   mysql_data:

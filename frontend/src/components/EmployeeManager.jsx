@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import EmployeeUI from './EmployeeUI'; // Import the EmployeeUI component
+import EmployeeUI from './EmployeeUI';
 
-// Use environment variable or fallback to localhost
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/employees";
+const API_URL = "http://localhost:8080/employees";
 
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
 function EmployeeManager() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -17,9 +25,7 @@ function EmployeeManager() {
   const addEmployee = async () => {
     try {
       const newEmployee = { name, email };
-      const response = await axios.post(API_URL, newEmployee, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await api.post('', newEmployee);
       setMessage('Employee added successfully!');
       setEmployees([...employees, response.data]);
       setName('');
@@ -31,7 +37,7 @@ function EmployeeManager() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await api.get('');
       setEmployees(response.data);
     } catch (error) {
       setMessage(`Error fetching employees: ${error.message}`);

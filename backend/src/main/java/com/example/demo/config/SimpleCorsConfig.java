@@ -16,9 +16,9 @@ public class SimpleCorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-        .allowedOriginPatterns("http://localhost:5173", "http://frontend:5173") // Explicit allowed origins
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);  // Set to false for "*" origin pattern
+                .allowedOrigins("http://localhost:5173", "http://frontend:5173") // Add your frontend origins
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")      // Allow necessary HTTP methods
+                .allowedHeaders("*")                                           // Allow all headers
+                .allowCredentials(true);                                       // Allow credentials
     }
 }

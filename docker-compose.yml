@@ -37,11 +37,12 @@ services:
         - "5173:5173"
       environment:
         - VITE_API_URL=http://backend:8080/employees  # Use service name instead of localhost
-      networks:
-        - app-network
+        - VITE_API_URL_LOCAL=http://localhost:8080/employees
       volumes:
         - ./frontend:/app
         - /app/node_modules
+      networks:
+        - app-network  
 
   db:
     image: mysql:8

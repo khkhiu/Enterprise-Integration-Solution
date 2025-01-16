@@ -17,7 +17,7 @@ COPY . .
 EXPOSE 5173
 
 # Set host and disable strict port for Vite
-ENV VITE_API_URL=http://localhost:8080/employees
+ENV VITE_API_URL=http://backend:8080/employeess
 ENV HOST=0.0.0.0
 
 # Start the Vite development server

@@ -1,4 +1,4 @@
-version: "3.9"
+#version: "3.9"
 services:
   backend:
     build:
@@ -20,6 +20,7 @@ services:
       SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES: "com.example.demo.entity"
       SPRING_KAFKA_PRODUCER_KEY_SERIALIZER: org.apache.kafka.common.serialization.StringSerializer
       SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER: org.springframework.kafka.support.serializer.JsonSerializer
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://frontend:5173"
     depends_on:
       db:
         condition: service_healthy
@@ -34,13 +35,11 @@ services:
         dockerfile: Dockerfile
       ports:
         - "5173:5173"
-      environment:
-        - VITE_API_URL=http://localhost:8080/employees
-      networks:
-        - app-network
       volumes:
         - ./frontend:/app
         - /app/node_modules
+      networks:
+        - app-network  
 
   db:
     image: mysql:8

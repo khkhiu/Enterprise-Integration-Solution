@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/employees
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: "http://localhost:8080/employees", // Always use localhost in browser
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -32,6 +32,7 @@ function EmployeeManager() {
       setName('');
       setEmail('');
     } catch (error) {
+      console.error('Error details:', error);
       setMessage(`Error adding employee: ${error.response?.data?.message || error.message}`);
     }
   };
@@ -41,6 +42,7 @@ function EmployeeManager() {
       const response = await api.get('');
       setEmployees(response.data);
     } catch (error) {
+      console.error('Error details:', error);
       setMessage(`Error fetching employees: ${error.message}`);
     }
   };
@@ -54,7 +56,7 @@ function EmployeeManager() {
 
   const searchEmployees = async () => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await api.get('');
       const filtered = response.data.filter(
         (employee) =>
           employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,6 +65,7 @@ function EmployeeManager() {
       setSearchResults(filtered);
       setMessage(filtered.length ? '' : 'No employees found matching your search.');
     } catch (error) {
+      console.error('Error details:', error);
       setMessage(`Error searching employees: ${error.message}`);
     }
   };
@@ -75,23 +78,23 @@ function EmployeeManager() {
 
   const updateEmployee = async (id, updatedData) => {
     try {
-      await axios.put(`${API_URL}/${id}`, updatedData, {
-        headers: { "Content-Type": "application/json" },
-      });
+      await api.put(`/${id}`, updatedData);
       setMessage(`Employee with ID ${id} updated successfully!`);
       fetchEmployees();
     } catch (error) {
+      console.error('Error details:', error);
       setMessage(`Error updating employee: ${error.message}`);
     }
   };
 
   const deleteEmployee = async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      await api.delete(`/${id}`);
       setMessage(`Employee with ID ${id} deleted successfully!`);
       setEmployees(employees.filter((employee) => employee.id !== id));
       setSearchResults(searchResults.filter((employee) => employee.id !== id));
     } catch (error) {
+      console.error('Error details:', error);
       setMessage(`Error deleting employee: ${error.message}`);
     }
   };

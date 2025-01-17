@@ -14,6 +14,7 @@ RUN npm install -D typescript @types/react @types/react-dom @types/node
 # Copy TypeScript config files
 COPY tsconfig*.json ./
 
+
 # Copy the rest of the React app source code
 COPY . .
 

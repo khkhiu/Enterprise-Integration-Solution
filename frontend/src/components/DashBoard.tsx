@@ -19,7 +19,6 @@ interface OnboardingDashboardProps {
 }
 
 interface OnboardingDetails {
-  // Add specific onboarding details type if needed
   [key: string]: any;
 }
 
@@ -35,7 +34,7 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
       'Accept': 'application/json'
     }
   });
-
+  
   useEffect(() => {
     if (employee?.id) {
       fetchOnboardingDetails();
@@ -49,6 +48,36 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
       setOnboardingDetails(response.data);
     } catch (error) {
       setError('Failed to fetch onboarding details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getToggleEndpoint = (itemType: string): string => {
+    switch (itemType) {
+      case 'onboarding-status':
+        return 'onboarding/status';
+      case 'laptop':
+        return 'equipment/laptop';
+      case 'staff-pass':
+        return 'access/staff-pass';
+      case 'welcome-pack':
+        return 'onboarding/welcome-pack';
+      default:
+        return itemType;
+    }
+  };
+
+  const toggleItem = async (itemType: string) => {
+    try {
+      setIsLoading(true);
+      const endpoint = getToggleEndpoint(itemType);
+      await api.put(`/${employee.id}/${endpoint}/toggle`);
+      await fetchOnboardingDetails();
+      onUpdate();
+    } catch (error) {
+      setError(`Failed to toggle ${itemType}`);
+      console.error(`Error toggling ${itemType}:`, error);
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +106,11 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
   };
 
   if (isLoading) {
-    return <div className="p-4">Loading onboarding details...</div>;
+    return (
+      <div className="p-4 bg-gray-800 rounded-lg">
+        <p className="text-white">Loading onboarding details...</p>
+      </div>
+    );
   }
 
   if (error) {
@@ -92,14 +125,21 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
 
   return (
     <div className="onboarding-dashboard p-4 bg-gray-800 rounded-lg shadow">
-      {/* Update the text colors */}
       <h2 className="text-xl font-bold mb-4 text-white">Onboarding Progress</h2>
       
       <div className="status-section mb-6">
-      <h3 className="text-lg font-semibold mb-2 text-white">Status: 
+        <h3 className="text-lg font-semibold mb-2 text-white flex items-center">
+          Status: 
           <span className={`ml-2 ${getStatusColor(employee.onboardingStatus)}`}>
             {employee.onboardingStatus}
           </span>
+          <button
+            onClick={() => toggleItem('onboarding-status')}
+            className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            disabled={isLoading}
+          >
+            Toggle Status
+          </button>
         </h3>
         {employee.onboardingCompletedAt && (
           <p className="text-sm text-gray-400">
@@ -109,8 +149,7 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Update card backgrounds and text colors */}
-        <div className="detail-card p-4 border rounded bg-gray-800 text-white">
+        <div className="detail-card p-4 border border-gray-700 rounded bg-gray-800 text-white">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Account Setup</h4>
             {employee.accountId ? (
@@ -119,14 +158,12 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
               <Clock className="text-yellow-500 h-5 w-5" />
             )}
           </div>
-          {employee.accountId ? (
+          {employee.accountId && (
             <p className="text-sm mt-2">Account ID: {employee.accountId}</p>
-          ) : (
-            <p className="text-sm mt-2 text-yellow-600">Account creation in progress</p>
           )}
         </div>
 
-        <div className="detail-card p-4 border rounded">
+        <div className="detail-card p-4 border border-gray-700 rounded bg-gray-800 text-white">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Equipment</h4>
             {employee.laptopSerialNumber ? (
@@ -134,13 +171,20 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
             ) : (
               <Clock className="text-yellow-500 h-5 w-5" />
             )}
+            <button
+              onClick={() => toggleItem('laptop')}
+              className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+              disabled={isLoading}
+            >
+              Toggle Laptop
+            </button>
           </div>
           {employee.laptopSerialNumber && (
             <p className="text-sm mt-2">Laptop SN: {employee.laptopSerialNumber}</p>
           )}
         </div>
 
-        <div className="detail-card p-4 border rounded">
+        <div className="detail-card p-4 border border-gray-700 rounded bg-gray-800 text-white">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Staff Pass</h4>
             {employee.staffPassId ? (
@@ -148,13 +192,20 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
             ) : (
               <Clock className="text-yellow-500 h-5 w-5" />
             )}
+            <button
+              onClick={() => toggleItem('staff-pass')}
+              className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+              disabled={isLoading}
+            >
+              Toggle Pass
+            </button>
           </div>
           {employee.staffPassId && (
             <p className="text-sm mt-2">Pass ID: {employee.staffPassId}</p>
           )}
         </div>
 
-        <div className="detail-card p-4 border rounded">
+        <div className="detail-card p-4 border border-gray-700 rounded bg-gray-800 text-white">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Welcome Pack</h4>
             {employee.welcomePackIssued ? (
@@ -162,6 +213,13 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
             ) : (
               <Package className="text-yellow-500 h-5 w-5" />
             )}
+            <button
+              onClick={() => toggleItem('welcome-pack')}
+              className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+              disabled={isLoading}
+            >
+              Toggle Pack
+            </button>
           </div>
           <p className="text-sm mt-2">
             {employee.welcomePackIssued ? 'Issued' : 'Pending'}
@@ -179,6 +237,14 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
             Retry Onboarding
           </button>
         </div>
+      )}
+
+      {error && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
     </div>
   );

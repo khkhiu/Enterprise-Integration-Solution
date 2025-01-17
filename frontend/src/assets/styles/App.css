@@ -76,6 +76,9 @@
   margin-bottom: 10px;
   border-radius: 5px;
   align-items: center;
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
 }
 
 /* Button styling */
@@ -114,7 +117,8 @@
 
 /* Employee card styling */
 .employeeCard {
-  border: 1px solid #ccc;
+  border: 1px solid #3a3a3a;
+  background-color: #2a2a2a;
   margin: 10px;
   padding: 10px;
   border-radius: 5px;
@@ -149,7 +153,7 @@
 
 /*For on-boarding task*/
 .onboarding-details {
-  background-color: #848484;
+  background-color: #2a2a2a;
   padding: 1rem;
   margin: 0.5rem 0;
   border-radius: 4px;
@@ -201,14 +205,15 @@
 .onboarding-dashboard {
   margin: 1rem 0;
   padding: 1.5rem;
-  background-color: #848484;
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
   border-radius: 0.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .detail-card {
-  background-color: #848484;
-  border: 1px solid #5e5e5e;
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
   border-radius: 0.375rem;
   transition: all 0.2s ease;
 }
@@ -292,6 +297,7 @@
   }
 }
 
+/*
 @layer base {
   * {
     @apply border-border;
@@ -300,3 +306,4 @@
     @apply bg-background text-foreground;
   }
 }
+  */

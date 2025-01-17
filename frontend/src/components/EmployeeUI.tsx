@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import OnboardingDashboard from './DashBoard';
-import '../assets/styles/App.css';
+import '../assets/styles/index.css';
 
 interface Employee {
   id: string;

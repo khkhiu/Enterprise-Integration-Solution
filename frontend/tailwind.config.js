@@ -56,3 +56,17 @@ export default {
   plugins: [require("tailwindcss-animate")],
 }
 
+module.exports = {
+	darkMode: 'class', // or 'media' for system preference
+	theme: {
+	  extend: {
+		colors: {
+		  dark: {
+			bg: '#1a1a1a',
+			card: '#2a2a2a',
+			border: '#3a3a3a',
+		  }
+		}
+	  }
+	}
+  }

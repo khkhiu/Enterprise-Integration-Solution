@@ -91,24 +91,26 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
   }
 
   return (
-    <div className="onboarding-dashboard p-4 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-4">Onboarding Progress</h2>
+    <div className="onboarding-dashboard p-4 bg-gray-800 rounded-lg shadow">
+      {/* Update the text colors */}
+      <h2 className="text-xl font-bold mb-4 text-white">Onboarding Progress</h2>
       
       <div className="status-section mb-6">
-        <h3 className="text-lg font-semibold mb-2">Status: 
+      <h3 className="text-lg font-semibold mb-2 text-white">Status: 
           <span className={`ml-2 ${getStatusColor(employee.onboardingStatus)}`}>
             {employee.onboardingStatus}
           </span>
         </h3>
         {employee.onboardingCompletedAt && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-400">
             Completed: {new Date(employee.onboardingCompletedAt).toLocaleString()}
           </p>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="detail-card p-4 border rounded">
+        {/* Update card backgrounds and text colors */}
+        <div className="detail-card p-4 border rounded bg-gray-800 text-white">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Account Setup</h4>
             {employee.accountId ? (

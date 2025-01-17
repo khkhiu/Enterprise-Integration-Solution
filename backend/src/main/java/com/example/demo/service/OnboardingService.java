@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Employee;
+import com.example.demo.repository.EmployeeRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,15 @@ import java.util.UUID;
 public class OnboardingService {
     private static final Logger logger = LoggerFactory.getLogger(OnboardingService.class);
     private final Random random = new Random();
+    private final EmployeeRepository employeeRepository;
+
+    public OnboardingService(EmployeeRepository employeeRepository) {
+        this.employeeRepository = employeeRepository;
+    }
+
+    public Employee getEmployeeById(Long id) {
+        return employeeRepository.findById(id).orElse(null);
+    }
 
     public void startOnboarding(Employee employee) {
         try {

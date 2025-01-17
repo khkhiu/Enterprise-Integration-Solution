@@ -1,0 +1,31 @@
+# Use a Node.js image with Vite for development
+FROM node:18 AS dev
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies including TypeScript and type definitions
+RUN npm install
+RUN npm install -D typescript @types/react @types/react-dom @types/node
+
+# Copy TypeScript config files
+COPY tsconfig*.json ./
+
+# Copy the rest of the React app source code
+COPY . .
+
+# Type check and ensure TypeScript compilation works
+RUN npm run type-check --if-present
+
+# Expose the Vite development port
+EXPOSE 5173
+
+# Set host and disable strict port for Vite
+ENV VITE_API_URL=http://localhost:8080/employees
+ENV HOST=0.0.0.0
+
+# Start the Vite development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

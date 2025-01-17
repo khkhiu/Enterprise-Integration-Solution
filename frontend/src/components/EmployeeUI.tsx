@@ -1,8 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import OnboardingDashboard from './DashBoard';
 import '../assets/styles/App.css';
 
-function EmployeeUI({
+interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  onboardingStatus: 'COMPLETED' | 'IN_PROGRESS' | 'FAILED';
+  accountId?: string;
+  laptopSerialNumber?: string;
+  staffPassId?: string;
+  welcomePackIssued: boolean;
+  onboardingCompletedAt?: string;
+}
+
+interface EmployeeUIProps {
+  name: string;
+  email: string;
+  searchTerm: string;
+  employees: Employee[];
+  searchResults: Employee[];
+  showEmployees: boolean;
+  message: string;
+  setName: (name: string) => void;
+  setEmail: (email: string) => void;
+  setSearchTerm: (term: string) => void;
+  addEmployee: () => Promise<void>;
+  searchEmployees: () => Promise<void>;
+  clearSearch: () => void;
+  toggleEmployees: () => Promise<void>;
+  updateEmployee: (id: string, data: Partial<Employee>) => Promise<void>;
+  deleteEmployee: (id: string) => Promise<void>;
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+}
+
+const EmployeeUI: React.FC<EmployeeUIProps> = ({
   name,
   email,
   searchTerm,
@@ -20,9 +52,8 @@ function EmployeeUI({
   updateEmployee,
   deleteEmployee,
   handleSubmit,
-}) {
-
-  const getStatusBadgeClass = (status) => {
+}) => {
+  const getStatusBadgeClass = (status: Employee['onboardingStatus']): string => {
     switch (status) {
       case 'COMPLETED': return 'badge-success';
       case 'IN_PROGRESS': return 'badge-warning';
@@ -31,7 +62,7 @@ function EmployeeUI({
     }
   };
 
-  const renderOnboardingDetails = (employee) => (
+  const renderOnboardingDetails = (employee: Employee) => (
     <div className="onboarding-details">
       <h3>Onboarding Status: 
         <span className={`status-badge ${getStatusBadgeClass(employee.onboardingStatus)}`}>
@@ -54,8 +85,8 @@ function EmployeeUI({
     </div>
   );
 
-  const renderEmployeeCard = (employee) => {
-    const [showOnboarding, setShowOnboarding] = useState(false);
+  const renderEmployeeCard = (employee: Employee) => {
+    const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   
     return (
       <div key={employee.id} className="employeeCard">
@@ -86,17 +117,24 @@ function EmployeeUI({
   
         <div className="card-actions">
           <button
-            onClick={() =>
-              updateEmployee(employee.id, {
-                name: prompt('Enter new name:', employee.name) || employee.name,
-                email: prompt('Enter new email:', employee.email) || employee.email,
-              })
-            }
+            onClick={() => {
+              const newName = prompt('Enter new name:', employee.name);
+              const newEmail = prompt('Enter new email:', employee.email);
+              if (newName || newEmail) {
+                updateEmployee(employee.id, {
+                  name: newName || employee.name,
+                  email: newEmail || employee.email,
+                });
+              }
+            }}
             className="button"
           >
             Update
           </button>
-          <button onClick={() => deleteEmployee(employee.id)} className="button delete-button">
+          <button 
+            onClick={() => deleteEmployee(employee.id)} 
+            className="button delete-button"
+          >
             Delete
           </button>
         </div>
@@ -104,7 +142,7 @@ function EmployeeUI({
     );
   };
 
-  const scrollToTop = () => {
+  const scrollToTop = (): void => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };  
 
@@ -119,7 +157,7 @@ function EmployeeUI({
           type="text"
           placeholder="Name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
           required
           className="input"
         />
@@ -127,7 +165,7 @@ function EmployeeUI({
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           required
           className="input"
         />
@@ -139,7 +177,7 @@ function EmployeeUI({
           type="text"
           placeholder="Search by name or email"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           className="input"
         />
         <button onClick={searchEmployees} className="button">Search Employee</button>
@@ -176,6 +214,6 @@ function EmployeeUI({
       <button onClick={scrollToTop} className="scrollToTopButton">↑</button>
     </div>
   );
-}
+};
 
 export default EmployeeUI;

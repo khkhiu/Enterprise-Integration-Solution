@@ -1,14 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { AlertCircle, CheckCircle, Clock, Package } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const OnboardingDashboard = ({ employee, onUpdate }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [onboardingDetails, setOnboardingDetails] = useState(null);
+interface Employee {
+  id: string;
+  onboardingStatus: 'COMPLETED' | 'IN_PROGRESS' | 'FAILED';
+  onboardingCompletedAt?: string;
+  accountId?: string;
+  laptopSerialNumber?: string;
+  staffPassId?: string;
+  welcomePackIssued: boolean;
+}
 
-  const api = axios.create({
+interface OnboardingDashboardProps {
+  employee: Employee;
+  onUpdate: () => void;
+}
+
+interface OnboardingDetails {
+  // Add specific onboarding details type if needed
+  [key: string]: any;
+}
+
+const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onUpdate }) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [onboardingDetails, setOnboardingDetails] = useState<OnboardingDetails | null>(null);
+
+  const api: AxiosInstance = axios.create({
     baseURL: 'http://localhost:8080/employees',
     headers: {
       'Content-Type': 'application/json',
@@ -22,7 +42,7 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
     }
   }, [employee]);
 
-  const fetchOnboardingDetails = async () => {
+  const fetchOnboardingDetails = async (): Promise<void> => {
     try {
       setIsLoading(true);
       const response = await api.get(`/${employee.id}/onboarding`);
@@ -34,7 +54,7 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: Employee['onboardingStatus']): string => {
     switch (status) {
       case 'COMPLETED': return 'text-green-500';
       case 'IN_PROGRESS': return 'text-yellow-500';
@@ -43,7 +63,7 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
     }
   };
 
-  const retryOnboarding = async () => {
+  const retryOnboarding = async (): Promise<void> => {
     try {
       setIsLoading(true);
       await api.post(`/${employee.id}/onboarding/retry`);
@@ -74,7 +94,6 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
     <div className="onboarding-dashboard p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-bold mb-4">Onboarding Progress</h2>
       
-      {/* Overall Status */}
       <div className="status-section mb-6">
         <h3 className="text-lg font-semibold mb-2">Status: 
           <span className={`ml-2 ${getStatusColor(employee.onboardingStatus)}`}>
@@ -88,7 +107,6 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
         )}
       </div>
 
-      {/* Account Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="detail-card p-4 border rounded">
           <div className="flex items-center justify-between">
@@ -106,7 +124,6 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
           )}
         </div>
 
-        {/* Equipment Assignment */}
         <div className="detail-card p-4 border rounded">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Equipment</h4>
@@ -121,7 +138,6 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
           )}
         </div>
 
-        {/* Staff Pass */}
         <div className="detail-card p-4 border rounded">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Staff Pass</h4>
@@ -136,7 +152,6 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
           )}
         </div>
 
-        {/* Welcome Pack */}
         <div className="detail-card p-4 border rounded">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Welcome Pack</h4>
@@ -152,7 +167,6 @@ const OnboardingDashboard = ({ employee, onUpdate }) => {
         </div>
       </div>
 
-      {/* Action Buttons */}
       {employee.onboardingStatus === 'FAILED' && (
         <div className="mt-6">
           <button

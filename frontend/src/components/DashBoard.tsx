@@ -4,13 +4,15 @@ import { AlertCircle, CheckCircle, Clock, Package } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Employee {
-  id: string;
-  onboardingStatus: 'COMPLETED' | 'IN_PROGRESS' | 'FAILED';
-  onboardingCompletedAt?: string;
+  id: number; // Changed from string to number to match backend Long type
+  name: string;
+  email: string;
+  onboardingStatus: string; // Changed to match backend enum
   accountId?: string;
   laptopSerialNumber?: string;
   staffPassId?: string;
   welcomePackIssued: boolean;
+  onboardingCompletedAt?: string;
 }
 
 interface OnboardingDashboardProps {
@@ -22,10 +24,11 @@ interface OnboardingDetails {
   [key: string]: any;
 }
 
-const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onUpdate }) => {
+const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: initialEmployee, onUpdate }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [onboardingDetails, setOnboardingDetails] = useState<OnboardingDetails | null>(null);
+  const [employee, setEmployee] = useState<Employee>(initialEmployee);
 
   const api: AxiosInstance = axios.create({
     baseURL: 'http://localhost:8080/employees',
@@ -40,6 +43,11 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
       fetchOnboardingDetails();
     }
   }, [employee]);
+
+    // Update local employee state when prop changes
+    useEffect(() => {
+      setEmployee(initialEmployee);
+    }, [initialEmployee]);
 
   const fetchOnboardingDetails = async (): Promise<void> => {
     try {
@@ -68,15 +76,71 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee, onU
     }
   };
 
+  // Use random ID for the time being
+  const generateRandomId = (prefix: string) => {
+    return `${prefix}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+  };
+
   const toggleItem = async (itemType: string) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const endpoint = getToggleEndpoint(itemType);
-      await api.put(`/${employee.id}/${endpoint}/toggle`);
-      await fetchOnboardingDetails();
-      onUpdate();
+      const updatedEmployee = { ...employee };
+      
+      switch (itemType) {
+        case 'onboarding-status':
+          updatedEmployee.onboardingStatus = 
+            employee.onboardingStatus === 'COMPLETED' ? 'IN_PROGRESS' : 'COMPLETED';
+          updatedEmployee.onboardingCompletedAt = 
+            updatedEmployee.onboardingStatus === 'COMPLETED' ? new Date().toISOString() : undefined;
+          break;
+          
+        case 'laptop':
+          updatedEmployee.laptopSerialNumber = 
+            employee.laptopSerialNumber ? undefined : generateRandomId('LAP');
+          break;
+          
+        case 'staff-pass':
+          updatedEmployee.staffPassId = 
+            employee.staffPassId ? undefined : generateRandomId('PASS');
+          break;
+          
+        case 'welcome-pack':
+          updatedEmployee.welcomePackIssued = !employee.welcomePackIssued;
+          break;
+      }
+  
+      // Update through Spring Boot API
+      /*
+      const response = await fetch(`http://localhost:8080/employees/${employee.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...updatedEmployee,
+          onboardingCompletedAt: updatedEmployee.onboardingCompletedAt 
+            ? new Date(updatedEmployee.onboardingCompletedAt)
+            : null
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update ${itemType}`);
+      }
+      */
+      const response = await api.put(`/${employee.id}`, updatedEmployee);
+
+      if (response.status !== 200) {
+        throw new Error(`Failed to update ${itemType}`);
+      }
+
+      //const responseData = await response.json();
+      //setEmployee(responseData);
+      setEmployee(response.data);
+      onUpdate(); // Notify parent component
+      setError(null);
     } catch (error) {
-      setError(`Failed to toggle ${itemType}`);
+      setError(`Failed to toggle ${itemType}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       console.error(`Error toggling ${itemType}:`, error);
     } finally {
       setIsLoading(false);

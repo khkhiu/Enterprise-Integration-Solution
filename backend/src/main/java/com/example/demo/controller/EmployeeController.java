@@ -61,8 +61,20 @@ public class EmployeeController {
     public Employee updateEmployee(@PathVariable Long id, @RequestBody Employee updatedEmployee) {
         return repository.findById(id)
                 .map(existingEmployee -> {
+                    // Update basic info
                     existingEmployee.setName(updatedEmployee.getName());
                     existingEmployee.setEmail(updatedEmployee.getEmail());
+                    
+                    // Update onboarding status and related fields
+                    existingEmployee.setOnboardingStatus(updatedEmployee.getOnboardingStatus());
+                    existingEmployee.setOnboardingCompletedAt(updatedEmployee.getOnboardingCompletedAt());
+                    
+                    // Update equipment and access
+                    existingEmployee.setAccountId(updatedEmployee.getAccountId());
+                    existingEmployee.setLaptopSerialNumber(updatedEmployee.getLaptopSerialNumber());
+                    existingEmployee.setStaffPassId(updatedEmployee.getStaffPassId());
+                    existingEmployee.setWelcomePackIssued(updatedEmployee.isWelcomePackIssued());
+                    
                     return repository.save(existingEmployee);
                 })
                 .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));

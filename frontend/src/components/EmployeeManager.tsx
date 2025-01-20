@@ -3,10 +3,10 @@ import axios, { AxiosInstance } from 'axios';
 import EmployeeUI from './EmployeeUI';
 
 interface Employee {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  onboardingStatus: 'COMPLETED' | 'IN_PROGRESS' | 'FAILED';
+  onboardingStatus: string;
   accountId?: string;
   laptopSerialNumber?: string;
   staffPassId?: string;
@@ -14,7 +14,7 @@ interface Employee {
   onboardingCompletedAt?: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/employees";
+const API_URL = /*import.meta.env.VITE_API_URL ||*/ "http://localhost:8080/employees";
 
 const api: AxiosInstance = axios.create({
   baseURL: "http://localhost:8080/employees",
@@ -35,22 +35,36 @@ const EmployeeManager: React.FC = () => {
 
   const addEmployee = async (): Promise<void> => {
     try {
-      const newEmployee = { name, email };
-      const response = await api.post('', newEmployee);
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add employee');
+      }
+
+      const newEmployee = await response.json();
       setMessage('Employee added successfully!');
-      setEmployees([...employees, response.data]);
+      setEmployees([...employees, newEmployee]);
       setName('');
       setEmail('');
     } catch (error: any) {
       console.error('Error details:', error);
-      setMessage(`Error adding employee: ${error.response?.data?.message || error.message}`);
+      setMessage(`Error adding employee: ${error.message}`);
     }
   };
-
   const fetchEmployees = async (): Promise<void> => {
     try {
-      const response = await api.get('');
-      setEmployees(response.data);
+      const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error('Failed to fetch employees');
+      }
+      const data = await response.json();
+      setEmployees(data);
     } catch (error: any) {
       console.error('Error details:', error);
       setMessage(`Error fetching employees: ${error.message}`);
@@ -86,23 +100,44 @@ const EmployeeManager: React.FC = () => {
     setMessage('');
   };
 
-  const updateEmployee = async (id: string, updatedData: Partial<Employee>): Promise<void> => {
+  const updateEmployee = async (id: number, updatedData: Partial<Employee>): Promise<void> => {
     try {
-      await api.put(`/${id}`, updatedData);
-      setMessage(`Employee with ID ${id} updated successfully!`);
-      fetchEmployees();
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update employee');
+      }
+
+      const updatedEmployee = await response.json();
+      setMessage(`Employee updated successfully!`);
+      setEmployees(employees.map(emp => 
+        emp.id === id ? updatedEmployee : emp
+      ));
     } catch (error: any) {
       console.error('Error details:', error);
       setMessage(`Error updating employee: ${error.message}`);
     }
   };
 
-  const deleteEmployee = async (id: string): Promise<void> => {
+  const deleteEmployee = async (id: number): Promise<void> => {
     try {
-      await api.delete(`/${id}`);
-      setMessage(`Employee with ID ${id} deleted successfully!`);
-      setEmployees(employees.filter((employee) => employee.id !== id));
-      setSearchResults(searchResults.filter((employee) => employee.id !== id));
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete employee');
+      }
+
+      setMessage(`Employee deleted successfully!`);
+      setEmployees(employees.filter(emp => emp.id !== id));
+      setSearchResults(searchResults.filter(emp => emp.id !== id));
     } catch (error: any) {
       console.error('Error details:', error);
       setMessage(`Error deleting employee: ${error.message}`);

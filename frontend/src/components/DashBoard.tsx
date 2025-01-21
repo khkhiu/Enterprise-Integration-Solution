@@ -4,10 +4,10 @@ import { AlertCircle, CheckCircle, Clock, Package } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Employee {
-  id: number; // Changed from string to number to match backend Long type
+  id: number;
   name: string;
   email: string;
-  onboardingStatus: string; // Changed to match backend enum
+  onboardingStatus: string;
   accountId?: string;
   laptopSerialNumber?: string;
   staffPassId?: string;
@@ -24,11 +24,26 @@ interface OnboardingDetails {
   [key: string]: any;
 }
 
+interface ButtonState {
+  isIssued: boolean;
+  canIssue: boolean;
+}
+
+interface ButtonStates {
+  [key: string]: ButtonState;
+}
+
 const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: initialEmployee, onUpdate }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [onboardingDetails, setOnboardingDetails] = useState<OnboardingDetails | null>(null);
   const [employee, setEmployee] = useState<Employee>(initialEmployee);
+  const [buttonStates, setButtonStates] = useState<ButtonStates>({
+    'account-setup': { isIssued: false, canIssue: true },
+    'laptop': { isIssued: false, canIssue: true },
+    'staff-pass': { isIssued: false, canIssue: true },
+    'welcome-pack': { isIssued: false, canIssue: true }
+  });
 
   const api: AxiosInstance = axios.create({
     baseURL: 'http://localhost:8080/employees',
@@ -44,10 +59,19 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: ini
     }
   }, [employee]);
 
-    // Update local employee state when prop changes
-    useEffect(() => {
-      setEmployee(initialEmployee);
-    }, [initialEmployee]);
+  useEffect(() => {
+    setEmployee(initialEmployee);
+  }, [initialEmployee]);
+
+  useEffect(() => {
+    // Update button states based on employee data
+    setButtonStates({
+      'account-setup': { isIssued: !!employee.accountId, canIssue: !employee.accountId },
+      'laptop': { isIssued: !!employee.laptopSerialNumber, canIssue: !employee.laptopSerialNumber },
+      'staff-pass': { isIssued: !!employee.staffPassId, canIssue: !employee.staffPassId },
+      'welcome-pack': { isIssued: employee.welcomePackIssued, canIssue: !employee.welcomePackIssued }
+    });
+  }, [employee]);
 
   const fetchOnboardingDetails = async (): Promise<void> => {
     try {
@@ -61,87 +85,87 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: ini
     }
   };
 
-  const getToggleEndpoint = (itemType: string): string => {
-    switch (itemType) {
-      case 'onboarding-status':
-        return 'onboarding/status';
-      case 'laptop':
-        return 'equipment/laptop';
-      case 'staff-pass':
-        return 'access/staff-pass';
-      case 'welcome-pack':
-        return 'onboarding/welcome-pack';
-      default:
-        return itemType;
-    }
-  };
-
-  // Use random ID for the time being
   const generateRandomId = (prefix: string) => {
     return `${prefix}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
   };
 
-  const toggleItem = async (itemType: string) => {
+  const handleIssue = async (itemType: string) => {
     setIsLoading(true);
     try {
       const updatedEmployee = { ...employee };
       
       switch (itemType) {
-        case 'onboarding-status':
-          updatedEmployee.onboardingStatus = 
-            employee.onboardingStatus === 'COMPLETED' ? 'IN_PROGRESS' : 'COMPLETED';
-          updatedEmployee.onboardingCompletedAt = 
-            updatedEmployee.onboardingStatus === 'COMPLETED' ? new Date().toISOString() : undefined;
+        case 'account-setup':
+          updatedEmployee.accountId = generateRandomId('ACC');
           break;
-          
         case 'laptop':
-          updatedEmployee.laptopSerialNumber = 
-            employee.laptopSerialNumber ? undefined : generateRandomId('LAP');
+          updatedEmployee.laptopSerialNumber = generateRandomId('LAP');
           break;
-          
         case 'staff-pass':
-          updatedEmployee.staffPassId = 
-            employee.staffPassId ? undefined : generateRandomId('PASS');
+          updatedEmployee.staffPassId = generateRandomId('PASS');
           break;
-          
         case 'welcome-pack':
-          updatedEmployee.welcomePackIssued = !employee.welcomePackIssued;
+          updatedEmployee.welcomePackIssued = true;
           break;
       }
   
-      // Update through Spring Boot API
-      /*
-      const response = await fetch(`http://localhost:8080/employees/${employee.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...updatedEmployee,
-          onboardingCompletedAt: updatedEmployee.onboardingCompletedAt 
-            ? new Date(updatedEmployee.onboardingCompletedAt)
-            : null
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update ${itemType}`);
-      }
-      */
       const response = await api.put(`/${employee.id}`, updatedEmployee);
 
       if (response.status !== 200) {
-        throw new Error(`Failed to update ${itemType}`);
+        throw new Error(`Failed to issue ${itemType}`);
       }
 
-      //const responseData = await response.json();
-      //setEmployee(responseData);
       setEmployee(response.data);
-      onUpdate(); // Notify parent component
+      onUpdate();
       setError(null);
+
+      setButtonStates(prev => ({
+        ...prev,
+        [itemType]: { isIssued: true, canIssue: false }
+      }));
     } catch (error) {
-      setError(`Failed to toggle ${itemType}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      console.error(`Error toggling ${itemType}:`, error);
+      setError(`Failed to issue ${itemType}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReturn = async (itemType: string) => {
+    setIsLoading(true);
+    try {
+      const updatedEmployee = { ...employee };
+      
+      switch (itemType) {
+        case 'account-setup':
+          updatedEmployee.accountId = undefined;
+          break;
+        case 'laptop':
+          updatedEmployee.laptopSerialNumber = undefined;
+          break;
+        case 'staff-pass':
+          updatedEmployee.staffPassId = undefined;
+          break;
+        case 'welcome-pack':
+          updatedEmployee.welcomePackIssued = false;
+          break;
+      }
+  
+      const response = await api.put(`/${employee.id}`, updatedEmployee);
+
+      if (response.status !== 200) {
+        throw new Error(`Failed to return ${itemType}`);
+      }
+
+      setEmployee(response.data);
+      onUpdate();
+      setError(null);
+
+      setButtonStates(prev => ({
+        ...prev,
+        [itemType]: { isIssued: false, canIssue: true }
+      }));
+    } catch (error) {
+      setError(`Failed to return ${itemType}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -197,13 +221,6 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: ini
           <span className={`ml-2 ${getStatusColor(employee.onboardingStatus)}`}>
             {employee.onboardingStatus}
           </span>
-          <button
-            onClick={() => toggleItem('onboarding-status')}
-            className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-            disabled={isLoading}
-          >
-            Toggle Status
-          </button>
         </h3>
         {employee.onboardingCompletedAt && (
           <p className="text-sm text-gray-400">
@@ -221,6 +238,22 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: ini
             ) : (
               <Clock className="text-yellow-500 h-5 w-5" />
             )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleIssue('account-setup')}
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                disabled={isLoading || !buttonStates['account-setup'].canIssue}
+              >
+                Issue Account
+              </button>
+              <button
+                onClick={() => handleReturn('account-setup')}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                disabled={isLoading || !buttonStates['account-setup'].isIssued}
+              >
+                Return
+              </button>
+            </div>
           </div>
           {employee.accountId && (
             <p className="text-sm mt-2">Account ID: {employee.accountId}</p>
@@ -235,13 +268,22 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: ini
             ) : (
               <Clock className="text-yellow-500 h-5 w-5" />
             )}
-            <button
-              onClick={() => toggleItem('laptop')}
-              className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-              disabled={isLoading}
-            >
-              Toggle Laptop
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleIssue('laptop')}
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                disabled={isLoading || !buttonStates['laptop'].canIssue}
+              >
+                Issue Laptop
+              </button>
+              <button
+                onClick={() => handleReturn('laptop')}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                disabled={isLoading || !buttonStates['laptop'].isIssued}
+              >
+                Return
+              </button>
+            </div>
           </div>
           {employee.laptopSerialNumber && (
             <p className="text-sm mt-2">Laptop SN: {employee.laptopSerialNumber}</p>
@@ -256,13 +298,22 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: ini
             ) : (
               <Clock className="text-yellow-500 h-5 w-5" />
             )}
-            <button
-              onClick={() => toggleItem('staff-pass')}
-              className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-              disabled={isLoading}
-            >
-              Toggle Pass
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleIssue('staff-pass')}
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                disabled={isLoading || !buttonStates['staff-pass'].canIssue}
+              >
+                Issue Pass
+              </button>
+              <button
+                onClick={() => handleReturn('staff-pass')}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                disabled={isLoading || !buttonStates['staff-pass'].isIssued}
+              >
+                Return
+              </button>
+            </div>
           </div>
           {employee.staffPassId && (
             <p className="text-sm mt-2">Pass ID: {employee.staffPassId}</p>
@@ -277,13 +328,22 @@ const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ employee: ini
             ) : (
               <Package className="text-yellow-500 h-5 w-5" />
             )}
-            <button
-              onClick={() => toggleItem('welcome-pack')}
-              className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-              disabled={isLoading}
-            >
-              Toggle Pack
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleIssue('welcome-pack')}
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                disabled={isLoading || !buttonStates['welcome-pack'].canIssue}
+              >
+                Issue Pack
+              </button>
+              <button
+                onClick={() => handleReturn('welcome-pack')}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                disabled={isLoading || !buttonStates['welcome-pack'].isIssued}
+              >
+                Return
+              </button>
+            </div>
           </div>
           <p className="text-sm mt-2">
             {employee.welcomePackIssued ? 'Issued' : 'Pending'}

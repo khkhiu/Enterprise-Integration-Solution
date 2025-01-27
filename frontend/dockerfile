@@ -7,11 +7,19 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies including TypeScript and type definitions
 RUN npm install
+RUN npm install -D typescript @types/react @types/react-dom @types/node
+
+# Copy TypeScript config files
+COPY tsconfig*.json ./
+
 
 # Copy the rest of the React app source code
 COPY . .
+
+# Type check and ensure TypeScript compilation works
+RUN npm run type-check --if-present
 
 # Expose the Vite development port
 EXPOSE 5173

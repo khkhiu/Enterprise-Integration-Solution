@@ -1,4 +1,4 @@
-# HR-Onboarding Integration Solution
+# Enterprise Integration Solution
 
 This repository contains a project designed to integrate two enterprise systems: an HR system and an onboarding system. The solution ensures seamless automation of onboarding tasks when a new employee is added to the HR system.
 
